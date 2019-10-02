@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="2D-Optimization-1:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/2D_Optimization_1_jar</output-path>
+    <root id="archive" name="2D-Optimization-1.jar">
+      <element id="module-output" name="2D-Optimization-1" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/mariuszgromada/math/MathParser.org-mXparser/4.2.0/MathParser.org-mXparser-4.2.0.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
