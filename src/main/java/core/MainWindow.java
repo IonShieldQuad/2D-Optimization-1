@@ -26,6 +26,7 @@ public class MainWindow {
     private JTextField widthField;
     private JTextField offsetField;
     private JCheckBox alternateContoursCheckBox;
+    private JTextArea fXYXTextArea;
     
     private static String TITLE = "2D-Optimization-1";
     private Function function;
