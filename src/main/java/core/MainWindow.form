@@ -3,7 +3,7 @@
   <grid id="27dc6" binding="rootPanel" layout-manager="GridLayoutManager" row-count="2" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="5" left="5" bottom="5" right="5"/>
     <constraints>
-      <xy x="20" y="20" width="1014" height="545"/>
+      <xy x="20" y="20" width="1014" height="570"/>
     </constraints>
     <properties>
       <background color="-21518"/>
@@ -43,7 +43,7 @@
           </component>
         </children>
       </grid>
-      <grid id="24cea" layout-manager="GridLayoutManager" row-count="6" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="24cea" layout-manager="GridLayoutManager" row-count="7" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="1" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -212,7 +212,7 @@
                   </grid>
                 </constraints>
                 <properties>
-                  <text value="0.05"/>
+                  <text value="0.2"/>
                 </properties>
               </component>
               <component id="95bf1" class="javax.swing.JTextField" binding="offsetField">
@@ -255,7 +255,7 @@
           </component>
           <component id="df6ab" class="javax.swing.JButton" binding="calculateButton" default-binding="true">
             <constraints>
-              <grid row="5" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="6" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <text value="Calculate"/>
@@ -263,7 +263,7 @@
           </component>
           <vspacer id="cd67d">
             <constraints>
-              <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+              <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
             </constraints>
           </vspacer>
           <component id="9c6fe" class="javax.swing.JComboBox" binding="methodBox">
@@ -289,6 +289,16 @@
             <properties>
               <selected value="true"/>
               <text value="Use Colors"/>
+            </properties>
+          </component>
+          <component id="ef8a1" class="javax.swing.JCheckBox" binding="alternateContoursCheckBox">
+            <constraints>
+              <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="true"/>
+              <selected value="false"/>
+              <text value="Alternate contours"/>
             </properties>
           </component>
         </children>

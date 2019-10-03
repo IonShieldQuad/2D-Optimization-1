@@ -32,10 +32,11 @@ public class ContourGraphDisplay extends JPanel {
     private int resolution = 50;
     
     private double contours = 20;
-    private double contourWidth = 0.05;
+    private double contourWidth = 0.2;
     private double contourOffset = 0;
     
     private boolean usingColors = true;
+    private boolean alternateContours = false;
     
     private List<PointDouble> points = new ArrayList<>();
     
@@ -81,10 +82,12 @@ public class ContourGraphDisplay extends JPanel {
                 PointDouble in = graphToValue(new PointDouble(i + MARGIN_X, j + MARGIN_Y));
                 double val = cache.get(in.getX(), in.getY());
                 matched = false;
-                for (int k = 0; k <= contours; k++) {
-                    if (val >= min + (k - 0.5 * contourWidth + contourOffset) * dz && val <= min + (k + 0.5 * contourWidth + contourOffset) * dz) {
-                        matched = true;
-                        break;
+                if (alternateContours && contours > 0) {
+                    for (int k = 0; k <= contours; k++) {
+                        if (val >= min + (k - 0.5 * contourWidth + contourOffset + 0.5) * dz && val <= min + (k + 0.5 * contourWidth + contourOffset + 0.5) * dz) {
+                            matched = true;
+                            break;
+                        }
                     }
                 }
                 if (matched) {
@@ -112,6 +115,71 @@ public class ContourGraphDisplay extends JPanel {
                 }
                 prev = (int) Math.round(val.getY());*/
                 
+            }
+        }
+        //Draw contours
+        if (!alternateContours) {
+            for (int k = 0; k < contours; k++) {
+                double target = min + (k + contourOffset + 0.5) * dz;
+                
+                //Map of all points higher/lower then the target
+                ArrayList<ArrayList<Boolean>> data = new ArrayList<>(graphWidth());
+                for (int i = 0; i < graphWidth(); i++) {
+                    data.add(new ArrayList<>(graphHeight()));
+                    for (int j = 0; j < graphHeight(); j++) {
+                        PointDouble in = graphToValue(new PointDouble(i + MARGIN_X, j + MARGIN_Y));
+                        double val = cache.get(in.getX(), in.getY());
+                        data.get(i).add(val > target);
+                    }
+                }
+                
+                //Edge detection filter
+                ArrayList<ArrayList<Boolean>> filteredData = new ArrayList<>(graphWidth());
+                for (int i = 0; i < graphWidth(); i++) {
+                    filteredData.add(new ArrayList<>(graphHeight()));
+                    for (int j = 0; j < graphHeight(); j++) {
+                        boolean tl = data.get(Math.max(Math.min(i - 1, graphWidth() - 1), 0)).get(Math.max(Math.min(j + 1, graphHeight() - 1), 0));
+                        boolean tc = data.get(Math.max(Math.min(i, graphWidth() - 1), 0)).get(Math.max(Math.min(j + 1, graphHeight() - 1), 0));
+                        boolean tr = data.get(Math.max(Math.min(i + 1, graphWidth() - 1), 0)).get(Math.max(Math.min(j + 1, graphHeight() - 1), 0));
+                        
+                        boolean cl = data.get(Math.max(Math.min(i - 1, graphWidth() - 1), 0)).get(Math.max(Math.min(j, graphHeight() - 1), 0));
+                        boolean cc = data.get(Math.max(Math.min(i, graphWidth() - 1), 0)).get(Math.max(Math.min(j, graphHeight() - 1), 0));
+                        boolean ct = data.get(Math.max(Math.min(i + 1, graphWidth() - 1), 0)).get(Math.max(Math.min(j, graphHeight() - 1), 0));
+                        
+                        boolean bl = data.get(Math.max(Math.min(i - 1, graphWidth() - 1), 0)).get(Math.max(Math.min(j - 1, graphHeight() - 1), 0));
+                        boolean bc = data.get(Math.max(Math.min(i, graphWidth() - 1), 0)).get(Math.max(Math.min(j - 1, graphHeight() - 1), 0));
+                        boolean br = data.get(Math.max(Math.min(i + 1, graphWidth() - 1), 0)).get(Math.max(Math.min(j - 1, graphHeight() - 1), 0));
+    
+                        boolean res;
+                        if (contourWidth > 0.5) {
+                            res = (cc && (!tl || !tc || !tr || !cl || !ct || !bl || !bc || !br)) || (!cc && (tl || tc || tr || cl || ct || bl || bc || br));
+                        }
+                        else {
+                            if (contourWidth > 0.25) {
+                                res = (cc && (!tc || !cl || !ct || !bc)) || (!cc && (tc || cl || ct || bc));
+                            }
+                            else {
+                                res = cc && (!tc || !cl || !ct || !bc);
+                            }
+                        }
+                        filteredData.get(i).add(res);
+                    }
+                }
+                
+                //Draw contour
+                if (usingColors) {
+                    g.setColor(CONTOUR_COLOR);
+                }
+                else {
+                    g.setColor(Color.BLACK);
+                }
+                for (int i = 0; i < graphWidth(); i++) {
+                    for (int j = 0; j < graphHeight(); j++) {
+                        if (filteredData.get(i).get(j)) {
+                            g.drawRect(i + MARGIN_X, j + MARGIN_Y, 0, 0);
+                        }
+                    }
+                }
             }
         }
     }
@@ -279,6 +347,14 @@ public class ContourGraphDisplay extends JPanel {
     
     public void setContourOffset(double contourOffset) {
         this.contourOffset = contourOffset;
+    }
+    
+    public boolean isAlternateContours() {
+        return alternateContours;
+    }
+    
+    public void setAlternateContours(boolean alternateContours) {
+        this.alternateContours = alternateContours;
     }
     
     private static class FunctionCache {
