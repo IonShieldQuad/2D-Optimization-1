@@ -5,8 +5,11 @@ import org.mariuszgromada.math.mxparser.Function;
 
 import javax.swing.*;
 import java.awt.*;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 public class ContourGraphDisplay extends JPanel {
@@ -16,7 +19,7 @@ public class ContourGraphDisplay extends JPanel {
     private static final Color GRID_COLOR = Color.GRAY;
     private static final Color HIGH_COLOR = new Color(0x7fbff3);
     private static final Color LOW_COLOR = new Color(0xec80aa);
-    private static final Color CONTOUR_COLOR = new Color(0xbb88ff);
+    private static final Color CONTOUR_COLOR = new Color(0x8869ff);
     private static final Color POINT_COLOR = Color.YELLOW;
     private static final int POINT_SIZE = 2;
     
@@ -37,6 +40,7 @@ public class ContourGraphDisplay extends JPanel {
     
     private boolean usingColors = true;
     private boolean alternateContours = false;
+    private boolean displayingValues = false;
     
     private List<PointDouble> points = new ArrayList<>();
     
@@ -121,6 +125,7 @@ public class ContourGraphDisplay extends JPanel {
         if (!alternateContours) {
             for (int k = 0; k < contours; k++) {
                 double target = min + (k + contourOffset + 0.5) * dz;
+                boolean drewString = !displayingValues;
                 
                 //Map of all points higher/lower then the target
                 ArrayList<ArrayList<Boolean>> data = new ArrayList<>(graphWidth());
@@ -173,10 +178,15 @@ public class ContourGraphDisplay extends JPanel {
                 else {
                     g.setColor(Color.BLACK);
                 }
-                for (int i = 0; i < graphWidth(); i++) {
-                    for (int j = 0; j < graphHeight(); j++) {
-                        if (filteredData.get(i).get(j)) {
-                            g.drawRect(i + MARGIN_X, j + MARGIN_Y, 0, 0);
+                for (int i = 0; i < graphHeight(); i++) {
+                    for (int j = 0; j < graphWidth(); j++) {
+                        if (filteredData.get(j).get(i)) {
+                            g.drawRect(j + MARGIN_X, i + MARGIN_Y, 0, 0);
+                            if (!drewString) {
+                                g.setFont(g.getFont().deriveFont(10.0f));
+                                g.drawString(new DecimalFormat("0.0###", DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(target), j + MARGIN_X, i + MARGIN_Y);
+                                drewString = true;
+                            }
                         }
                     }
                 }
@@ -355,6 +365,14 @@ public class ContourGraphDisplay extends JPanel {
     
     public void setAlternateContours(boolean alternateContours) {
         this.alternateContours = alternateContours;
+    }
+    
+    public boolean isDisplayingValues() {
+        return displayingValues;
+    }
+    
+    public void setDisplayingValues(boolean displayingValues) {
+        this.displayingValues = displayingValues;
     }
     
     private static class FunctionCache {

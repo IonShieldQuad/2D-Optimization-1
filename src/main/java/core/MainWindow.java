@@ -27,6 +27,7 @@ public class MainWindow {
     private JTextField offsetField;
     private JCheckBox alternateContoursCheckBox;
     private JTextArea fXYXTextArea;
+    private JCheckBox displayValuesCheckBox;
     
     private static String TITLE = "2D-Optimization-1";
     private Function function;
@@ -80,6 +81,7 @@ public class MainWindow {
         graph.setContourOffset(Double.parseDouble(offsetField.getText()));
         graph.setUsingColors(useColorsCheckBox.isSelected());
         graph.setAlternateContours(alternateContoursCheckBox.isSelected());
+        graph.setDisplayingValues(displayValuesCheckBox.isSelected());
         graph.repaint();
     }
     
