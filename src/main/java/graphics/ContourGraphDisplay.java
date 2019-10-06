@@ -315,6 +315,14 @@ public class ContourGraphDisplay extends JPanel {
         this.points = points;
     }
     
+    public List<LineDouble> getLines() {
+        return lines;
+    }
+    
+    public void setLines(List<LineDouble> lines) {
+        this.lines = lines;
+    }
+    
     public static double interpolate(double a, double b, double alpha) {
         return b * alpha + a * (1 - alpha);
     }
