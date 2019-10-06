@@ -9,6 +9,7 @@ public abstract class Solver {
     private BiFunction<Double, Double, Double> f;
     private List<String> log = new ArrayList<>();
     private List<PointDouble> points = new ArrayList<>();
+    private List<LineDouble> lines = new ArrayList<>();
     
     public Solver(){}
     public Solver(BiFunction<Double, Double, Double> f) {
@@ -22,20 +23,15 @@ public abstract class Solver {
     public void setF(BiFunction<Double, Double, Double> f) {
         this.f = f;
     }
-
-    /**
-     * Solve the equation
-     * @param lower Lower bound of search
-     * @param upper Upper bound of search
-     * @return Root of the equation, null if none found
-     * */
-    public PointDouble solve(double lower, double upper) {
+    
+    public PointDouble solve(PointDouble... data) {
         points.clear();
         log.clear();
-        return solveInternal(lower, upper);
+        lines.clear();
+        return solveInternal(data);
     }
     
-    protected abstract PointDouble solveInternal(double lower, double upper);
+    protected abstract PointDouble solveInternal(PointDouble... data);
     protected abstract int getLogBatchSize();
 
     protected void addToLog(String value) {
@@ -43,6 +39,12 @@ public abstract class Solver {
     }
     protected void addPoint(PointDouble point) {
         points.add(point);
+    }
+    protected void addLine(LineDouble line) {
+        lines.add(line);
+    }
+    protected void addLine(PointDouble a, PointDouble b) {
+        lines.add(new LineDouble(a, b));
     }
 
     /**@return Returns log as a list of string, each representing a solution step*/
@@ -61,5 +63,8 @@ public abstract class Solver {
     
     public List<PointDouble> getPoints() {
         return points;
+    }
+    public List<LineDouble> getLines() {
+        return lines;
     }
 }

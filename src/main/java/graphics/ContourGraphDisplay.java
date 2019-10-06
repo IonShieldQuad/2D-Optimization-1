@@ -1,5 +1,6 @@
 package graphics;
 
+import math.LineDouble;
 import math.PointDouble;
 import org.mariuszgromada.math.mxparser.Function;
 
@@ -20,7 +21,9 @@ public class ContourGraphDisplay extends JPanel {
     private static final Color HIGH_COLOR = new Color(0x7fbff3);
     private static final Color LOW_COLOR = new Color(0xec80aa);
     private static final Color CONTOUR_COLOR = new Color(0x8869ff);
-    private static final Color POINT_COLOR = Color.YELLOW;
+    private static final Color VALUE_COLOR = new Color(0xffff22);
+    private static final Color POINT_COLOR = new Color(0xff4400);
+    private static final Color LINE_COLOR = new Color(0x66ff22);
     private static final int POINT_SIZE = 2;
     
     private Function function;
@@ -43,6 +46,7 @@ public class ContourGraphDisplay extends JPanel {
     private boolean displayingValues = false;
     
     private List<PointDouble> points = new ArrayList<>();
+    private List<LineDouble> lines = new ArrayList<>();
     
     public ContourGraphDisplay() {
         super();
@@ -67,6 +71,9 @@ public class ContourGraphDisplay extends JPanel {
         drawGrid(g);
         if (function != null) {
             drawGraph(g);
+        }
+        if (lines != null) {
+            drawLines(g);
         }
         if (points != null) {
             drawPoints(g);
@@ -125,7 +132,6 @@ public class ContourGraphDisplay extends JPanel {
         if (!alternateContours) {
             for (int k = 0; k < contours; k++) {
                 double target = min + (k + contourOffset + 0.5) * dz;
-                boolean drewString = !displayingValues;
                 
                 //Map of all points higher/lower then the target
                 ArrayList<ArrayList<Boolean>> data = new ArrayList<>(graphWidth());
@@ -171,6 +177,10 @@ public class ContourGraphDisplay extends JPanel {
                     }
                 }
                 
+                double centerDistanceMin = Double.POSITIVE_INFINITY;
+                int displayValueX = 0;
+                int displayValueY = 0;
+                
                 //Draw contour
                 if (usingColors) {
                     g.setColor(CONTOUR_COLOR);
@@ -182,13 +192,26 @@ public class ContourGraphDisplay extends JPanel {
                     for (int j = 0; j < graphWidth(); j++) {
                         if (filteredData.get(j).get(i)) {
                             g.drawRect(j + MARGIN_X, i + MARGIN_Y, 0, 0);
-                            if (!drewString) {
-                                g.setFont(g.getFont().deriveFont(10.0f));
-                                g.drawString(new DecimalFormat("0.0###", DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(target), j + MARGIN_X, i + MARGIN_Y);
-                                drewString = true;
+                            double dist = Math.sqrt(Math.pow(i - graphHeight() / 2.0, 2) + Math.pow(j - graphWidth() / 2.0, 2));
+                            if (displayingValues && dist < centerDistanceMin) {
+                                centerDistanceMin = dist;
+                                displayValueX = j;
+                                displayValueY = i;
                             }
                         }
                     }
+                }
+                //Display contour value text
+                if (displayingValues && displayValueX > 0 && displayValueX < graphWidth() - 1 && displayValueY > 0 && displayValueY < graphHeight() - 1) {
+                    if (usingColors) {
+                        g.setColor(VALUE_COLOR);
+                    }
+                    else {
+                        g.setColor(Color.GRAY);
+                    }
+                    g.setFont(g.getFont().deriveFont(10.0f));
+                    //g.drawString(String.format("%.3f", target), displayValueX + MARGIN_X, displayValueY + MARGIN_Y);
+                    g.drawString(new DecimalFormat("0.0###", DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(target), displayValueX + MARGIN_X, displayValueY + MARGIN_Y);
                 }
             }
         }
@@ -211,8 +234,13 @@ public class ContourGraphDisplay extends JPanel {
     }
     
     private void drawPoints(Graphics g) {
-        g.setColor(POINT_COLOR);
+        g.setColor(usingColors ? POINT_COLOR : Color.DARK_GRAY);
         points.stream().map(this::valueToGraph).forEach(p -> g.drawOval((int)Math.round(p.getX()) - POINT_SIZE / 2, (int)Math.round(p.getY()) - POINT_SIZE / 2, POINT_SIZE, POINT_SIZE));
+    }
+    
+    private void drawLines(Graphics g) {
+        g.setColor(usingColors ? LINE_COLOR : Color.LIGHT_GRAY);
+        lines.stream().map(l -> new LineDouble(valueToGraph(l.a), valueToGraph(l.b))).forEach(l -> g.drawLine((int)Math.round(l.a.getX()), (int)Math.round(l.a.getY()), (int)Math.round(l.b.getX()), (int)Math.round(l.b.getY())));
     }
     
     private int graphWidth() {
