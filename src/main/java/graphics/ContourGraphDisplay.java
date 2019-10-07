@@ -22,7 +22,7 @@ public class ContourGraphDisplay extends JPanel {
     private static final Color LOW_COLOR = new Color(0xec80aa);
     private static final Color CONTOUR_COLOR = new Color(0x8869ff);
     private static final Color VALUE_COLOR = new Color(0xffff22);
-    private static final Color POINT_COLOR = new Color(0xff4400);
+    private static final Color POINT_COLOR = new Color(0x0044ff);
     private static final Color LINE_COLOR = new Color(0x66ff22);
     private static final int POINT_SIZE = 2;
     
