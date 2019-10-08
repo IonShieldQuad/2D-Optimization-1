@@ -60,10 +60,10 @@ public class MainWindow {
                 solver.setF(function::calculate);
                 List<PointDouble> startPoints = getStartPoints();
                 PointDouble result = solver.solve(startPoints.toArray(new PointDouble[]{}));
+                log.append("\nResult: x = " + result.getX() + "; y = " + result.getY());
+                log.append("\nLog:");
+                solver.getSolutionLog().forEach(s -> log.append("\n" + s));
             }
-            //log.append("\nResult: x = " + result.getX() + "; y = " + result.getY());
-            //log.append("\nLog:");
-            //solver.getSolutionLog().forEach(s -> log.append("\n" + s));
             updateGraph();
         }
         catch (NumberFormatException e) {
@@ -92,6 +92,10 @@ public class MainWindow {
         if (solver != null) {
             graph.setPoints(solver.getPoints());
             graph.setLines(solver.getLines());
+        }
+        else {
+            graph.getPoints().clear();
+            graph.getLines().clear();
         }
         graph.setLowerX(Double.parseDouble(lowerX.getText()));
         graph.setUpperX(Double.parseDouble(upperX.getText()));
@@ -122,7 +126,7 @@ public class MainWindow {
                 break;
             case 2:
                 //Powell
-                solver = null;
+                solver = new PowellSolver();
                 break;
             case 3:
                 //Simplex
