@@ -75,8 +75,8 @@ public class MainWindow {
     }
     
     private List<PointDouble> getStartPoints() {
-        List<String> stringsX = Arrays.asList(startXField.getText().split(",\\s*"));
-        List<String> stringsY = Arrays.asList(startYField.getText().split(",\\s*"));
+        List<String> stringsX = Arrays.asList(startXField.getText().split(";\\s*"));
+        List<String> stringsY = Arrays.asList(startYField.getText().split(";\\s*"));
         if (stringsX.size() != stringsY.size()) {
             throw new IllegalArgumentException("The amount of x and y values must be equal");
         }
@@ -130,7 +130,7 @@ public class MainWindow {
                 break;
             case 3:
                 //Simplex
-                solver = null;
+                solver = new SimplexSolver();
                 break;
             default:
                 throw new IllegalArgumentException("No such method");

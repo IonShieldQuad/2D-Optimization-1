@@ -25,4 +25,17 @@ public class PointDouble {
     public void setY(Double y) {
         this.y = y;
     }
+    
+    public PointDouble add(PointDouble b) {
+        return new PointDouble(x + b.x, y + b.y);
+    }
+    
+    public PointDouble scale(double k) {
+        return new PointDouble(k * x, k * y);
+    }
+    
+    @Override
+    public String toString() {
+        return "(" + x + "; " + y + ")";
+    }
 }

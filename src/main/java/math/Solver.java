@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 public abstract class Solver {
-    public static final Double EPSILON = 0.01;
+    public static final Double EPSILON = 0.001;
     private BiFunction<Double, Double, Double> f;
     private List<String> log = new ArrayList<>();
     private List<PointDouble> points = new ArrayList<>();
