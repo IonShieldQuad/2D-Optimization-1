@@ -30,6 +30,10 @@ public class PointDouble {
         return new PointDouble(x + b.x, y + b.y);
     }
     
+    public PointDouble add(double x, double y) {
+        return new PointDouble(this.x + x, this.y + y);
+    }
+    
     public PointDouble scale(double k) {
         return new PointDouble(k * x, k * y);
     }

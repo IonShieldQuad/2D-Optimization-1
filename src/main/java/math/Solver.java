@@ -67,4 +67,28 @@ public abstract class Solver {
     public List<LineDouble> getLines() {
         return lines;
     }
+    
+    public PointDouble gradient(PointDouble point) {
+        return new PointDouble(fdx(point, 1), fdy(point, 1));
+    }
+    
+    public double fdx(PointDouble point, int order) {
+        if (order < 0) {
+            throw new IllegalArgumentException("Derivative order has to be non-negative");
+        }
+        if (order == 0) {
+            return f.apply(point.getX(), point.getY());
+        }
+        return fdx(point.add(EPSILON, 0), order - 1) - fdx(point, order - 1);
+    }
+    
+    public double fdy(PointDouble point, int order) {
+        if (order < 0) {
+            throw new IllegalArgumentException("Derivative order has to be non-negative");
+        }
+        if (order == 0) {
+            return f.apply(point.getX(), point.getY());
+        }
+        return fdy(point.add(0, EPSILON), order - 1) - fdy(point, order - 1);
+    }
 }
