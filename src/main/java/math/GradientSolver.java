@@ -13,12 +13,11 @@ public class GradientSolver extends Solver {
         PointDouble curr = data[0];
         PointDouble prev = curr;
         int i = 0;
-        
+        PointDouble gradient = gradient(curr);
         do {
             prev = curr;
-            PointDouble gradient = gradient(prev);
+            gradient = gradient(prev);
             curr = prev.add(gradient.scale(-DESC_RATE));
-            i++;
             
             addLine(prev, curr);
             addPoint(prev);
@@ -27,7 +26,10 @@ public class GradientSolver extends Solver {
     
             i++;
         } while (i < I_MAX && curr.add(prev.scale(-1)).length() > EPSILON);
-        
+        addLine(prev, curr);
+        addPoint(prev);
+        addPoint(curr);
+        addToLog(i + ") Point = " + prev + "; End = " + curr + "; Gradient = " + gradient);
         return curr;
     }
     

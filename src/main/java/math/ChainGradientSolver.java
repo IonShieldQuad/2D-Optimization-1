@@ -18,12 +18,13 @@ public class ChainGradientSolver extends Solver {
         PointDouble prevGrad;
         int i = 0;
         double delta;
+        double beta;
         do {
             prev = curr;
             prevGrad = grad;
             prevS = s;
             grad = gradient(prev);
-            double beta = grad.lengthSquared() / prevGrad.lengthSquared();
+            beta = grad.lengthSquared() / prevGrad.lengthSquared();
             if (i > 0) {
                 s = grad.scale(-DESC_RATE).add(prevS.scale(beta));
             }
@@ -40,7 +41,10 @@ public class ChainGradientSolver extends Solver {
             
             i++;
         } while (i < I_MAX && delta > EPSILON);
-        
+        addLine(prev, curr);
+        addPoint(prev);
+        addPoint(curr);
+        addToLog(i + ") Start = " + prev + "; End = " + curr + "; Gradient = " + grad + "; Beta = " + beta);
         return curr;
     }
     

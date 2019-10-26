@@ -13,10 +13,10 @@ public class FastGradientSolver extends Solver {
         PointDouble curr = data[0];
         PointDouble prev = curr;
         int i = 0;
-        
+        PointDouble gradient = gradient(curr);
         do {
             prev = curr;
-            PointDouble gradient = gradient(prev);
+            gradient = gradient(prev);
             curr = findMinOnAxis(gradient.scale(-DESC_RATE), prev);
             
             addLine(prev, curr);
@@ -26,7 +26,10 @@ public class FastGradientSolver extends Solver {
     
             i++;
         } while (i < I_MAX && curr.add(prev.scale(-1)).length() > EPSILON);
-        
+        addLine(prev, curr);
+        addPoint(prev);
+        addPoint(curr);
+        addToLog(i + ") Point = " + prev + "; End = " + curr + "; Gradient = " + gradient);
         return curr;
     }
     
