@@ -79,7 +79,7 @@ public abstract class Solver {
         if (order == 0) {
             return f.apply(point.getX(), point.getY());
         }
-        return fdx(point.add(EPSILON, 0), order - 1) - fdx(point, order - 1);
+        return (fdx(point.add(EPSILON, 0), order - 1) - fdx(point, order - 1)) / EPSILON;
     }
     
     public double fdy(PointDouble point, int order) {
@@ -89,7 +89,7 @@ public abstract class Solver {
         if (order == 0) {
             return f.apply(point.getX(), point.getY());
         }
-        return fdy(point.add(0, EPSILON), order - 1) - fdy(point, order - 1);
+        return (fdy(point.add(0, EPSILON), order - 1) - fdy(point, order - 1)) / EPSILON;
     }
     
     protected PointDouble findMinOnAxis(PointDouble axis, PointDouble startPoint) {

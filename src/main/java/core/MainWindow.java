@@ -132,6 +132,10 @@ public class MainWindow {
                 //Simplex
                 solver = new SimplexSolver();
                 break;
+            case 4:
+                //Gradient
+                solver = new GradientSolver();
+                break;
             default:
                 throw new IllegalArgumentException("No such method");
         }
