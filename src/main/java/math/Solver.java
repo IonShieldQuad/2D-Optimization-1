@@ -82,6 +82,10 @@ public abstract class Solver {
         return (fdx(point.add(EPSILON, 0), order - 1) - fdx(point, order - 1)) / EPSILON;
     }
     
+    public double fdx(PointDouble point) {
+        return fdx(point, 1);
+    }
+    
     public double fdy(PointDouble point, int order) {
         if (order < 0) {
             throw new IllegalArgumentException("Derivative order has to be non-negative");
@@ -90,6 +94,10 @@ public abstract class Solver {
             return f.apply(point.getX(), point.getY());
         }
         return (fdy(point.add(0, EPSILON), order - 1) - fdy(point, order - 1)) / EPSILON;
+    }
+    
+    public double fdy(PointDouble point) {
+        return fdy(point, 1);
     }
     
     protected PointDouble findMinOnAxis(PointDouble axis, PointDouble startPoint) {
@@ -103,56 +111,63 @@ public abstract class Solver {
         double nextY = currY + axis.getY() * Math.pow(2, i);
         i++;
         addPoint(new PointDouble(currX, currY));
-        addPoint(new PointDouble(nextX, nextY));
-        if (getF().apply(currX, currY) > getF().apply(nextX, nextY)) {
-            //Positive direction
-            while (getF().apply(currX, currY) > getF().apply(nextX, nextY)) {
-                prevX = currX;
-                prevY = currY;
-                currX = nextX;
-                currY = nextY;
-                nextX = currX + axis.getX() * Math.pow(2, i);
-                nextY = currY + axis.getY() * Math.pow(2, i);
-                i++;
-                addPoint(new PointDouble(nextX, nextY));
+    
+        do {
+            nextX = currX + axis.getX() * Math.pow(2, i);
+            nextY = currY + axis.getY() * Math.pow(2, i);
+            addPoint(new PointDouble(nextX, nextY));
+            if (getF().apply(currX, currY) > getF().apply(nextX, nextY)) {
+                //Positive direction
+                while (getF().apply(currX, currY) > getF().apply(nextX, nextY)) {
+                    prevX = currX;
+                    prevY = currY;
+                    currX = nextX;
+                    currY = nextY;
+                    nextX = currX + axis.getX() * Math.pow(2, i);
+                    nextY = currY + axis.getY() * Math.pow(2, i);
+                    i++;
+                    addPoint(new PointDouble(nextX, nextY));
+                }
+                double minX = prevX;
+                double maxX = nextX;
+                double minY = prevY;
+                double maxY = nextY;
+                Solver1D solver = new GoldenRatioSolver();
+                solver.setF(a -> getF().apply(minX * (1 - a) + maxX * a, minY * (1 - a) + maxY * a));
+                PointDouble res = solver.solve(0, 1);
+                PointDouble point = new PointDouble(maxX * res.getX() + minX * (1 - res.getX()), maxY * res.getX() + minY * (1 - res.getX()));
+                addPoint(point);
+                return point;
             }
-            double minX = prevX;
-            double maxX = nextX;
-            double minY = prevY;
-            double maxY = nextY;
-            Solver1D solver = new GoldenRatioSolver();
-            solver.setF(a -> getF().apply(minX * (1 - a) + maxX * a, minY * (1 - a) + maxY * a));
-            PointDouble res = solver.solve(0, 1);
-            PointDouble point = new PointDouble(maxX * res.getX() + minX * (1 - res.getX()), maxY * res.getX() + minY * (1 - res.getX()));
-            addPoint(point);
-            return point;
-        }
-        else {
-            //Negative direction
             nextX = currX - axis.getX() * Math.pow(2, i - 1);
             nextY = currY - axis.getY() * Math.pow(2, i - 1);
             addPoint(new PointDouble(nextX, nextY));
-            while (getF().apply(currX, currY) > getF().apply(nextX, nextY)) {
-                prevX = currX;
-                prevY = currY;
-                currX = nextX;
-                currY = nextY;
-                nextX = currX - axis.getX() * Math.pow(2, i);
-                nextY = currY - axis.getY() * Math.pow(2, i);
-                i++;
-                addPoint(new PointDouble(nextX, nextY));
+            if (getF().apply(currX, currY) > getF().apply(nextX, nextY)) {
+                //Negative direction
+                while (getF().apply(currX, currY) > getF().apply(nextX, nextY)) {
+                    prevX = currX;
+                    prevY = currY;
+                    currX = nextX;
+                    currY = nextY;
+                    nextX = currX - axis.getX() * Math.pow(2, i);
+                    nextY = currY - axis.getY() * Math.pow(2, i);
+                    i++;
+                    addPoint(new PointDouble(nextX, nextY));
+                }
+                double minX = prevX;
+                double maxX = nextX;
+                double minY = prevY;
+                double maxY = nextY;
+                Solver1D solver = new GoldenRatioSolver();
+                solver.setF(a -> getF().apply(minX * (1 - a) + maxX * a, minY * (1 - a) + maxY * a));
+                PointDouble res = solver.solve(0, 1);
+                PointDouble point = new PointDouble(maxX * res.getX() + minX * (1 - res.getX()), maxY * res.getX() + minY * (1 - res.getX()));
+                addPoint(point);
+                return point;
             }
-            double minX = prevX;
-            double maxX = nextX;
-            double minY = prevY;
-            double maxY = nextY;
-            Solver1D solver = new GoldenRatioSolver();
-            solver.setF(a -> getF().apply(minX * (1 - a) + maxX * a, minY * (1 - a) + maxY * a));
-            PointDouble res = solver.solve(0, 1);
-            PointDouble point = new PointDouble(maxX * res.getX() + minX * (1 - res.getX()), maxY * res.getX() + minY * (1 - res.getX()));
-            addPoint(point);
-            return point;
-        }
-        
+    
+            axis = axis.scale(0.5);
+        } while (axis.length() > EPSILON);
+        return startPoint;
     }
 }
