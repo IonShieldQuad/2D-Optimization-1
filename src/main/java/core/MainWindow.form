@@ -276,6 +276,9 @@
                 <item value="Gauss-Seidel"/>
                 <item value="Powell"/>
                 <item value="Simplex"/>
+                <item value="Gradient"/>
+                <item value="Fast Gradient"/>
+                <item value="Chain Gradient"/>
               </model>
             </properties>
           </component>

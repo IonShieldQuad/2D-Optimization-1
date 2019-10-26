@@ -136,6 +136,14 @@ public class MainWindow {
                 //Gradient
                 solver = new GradientSolver();
                 break;
+            case 5:
+                //Fast Gradient
+                solver = new FastGradientSolver();
+                break;
+            case 6:
+                //Chain Gradient
+                solver = new ChainGradientSolver();
+                break;
             default:
                 throw new IllegalArgumentException("No such method");
         }
