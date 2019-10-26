@@ -38,6 +38,14 @@ public class PointDouble {
         return new PointDouble(k * x, k * y);
     }
     
+    public double lengthSquared() {
+        return x * x + y * y;
+    }
+    
+    public double length() {
+        return Math.sqrt(lengthSquared());
+    }
+    
     @Override
     public String toString() {
         return "(" + x + "; " + y + ")";
