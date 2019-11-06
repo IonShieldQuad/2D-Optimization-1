@@ -9,6 +9,9 @@ public class PointDouble {
         this.y = y;
     }
     
+    public PointDouble copy() {
+        return new PointDouble(x, y);
+    }
     
     public Double getX() {
         return x;
@@ -44,6 +47,10 @@ public class PointDouble {
     
     public double length() {
         return Math.sqrt(lengthSquared());
+    }
+    
+    public PointDouble normalize() {
+        return scale(1 / length());
     }
     
     @Override

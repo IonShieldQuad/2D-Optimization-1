@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 public class ContourGraphDisplay extends JPanel {
     private static final int MARGIN_X = 50;
@@ -24,10 +25,13 @@ public class ContourGraphDisplay extends JPanel {
     private static final Color VALUE_COLOR = new Color(0xffff22);
     private static final Color POINT_COLOR = new Color(0x0044ff);
     private static final Color LINE_COLOR = new Color(0x66ff22);
+    private static final Color BOUND_COLOR = new Color(0xff0000);
     private static final int POINT_SIZE = 2;
     
     private Function function;
     private FunctionCache cache;
+    private List<BiFunction<Double, Double, Double>> bounds = new ArrayList<>();
+    private java.util.function.Function<List<Double>, Double> penaltyFunction;
     
     private double lowerX;
     private double upperX;
@@ -44,6 +48,7 @@ public class ContourGraphDisplay extends JPanel {
     private boolean usingColors = true;
     private boolean alternateContours = false;
     private boolean displayingValues = false;
+    private boolean displayPenaltyFunction = false;
     
     private List<PointDouble> points = new ArrayList<>();
     private List<LineDouble> lines = new ArrayList<>();
@@ -65,12 +70,15 @@ public class ContourGraphDisplay extends JPanel {
         super.paintComponent(g);
     
         if (function != null && (cache == null || !cache.isValid())) {
-            cache = new FunctionCache(function, resolution, lowerX, upperX, lowerY, upperY);
+            cache = new FunctionCache(function, resolution, lowerX, upperX, lowerY, upperY, displayPenaltyFunction ? penaltyFunction : null, bounds);
         }
         
         drawGrid(g);
         if (function != null) {
             drawGraph(g);
+        }
+        if (bounds != null) {
+            drawBounds(g, bounds);
         }
         if (lines != null) {
             drawLines(g);
@@ -243,6 +251,67 @@ public class ContourGraphDisplay extends JPanel {
         lines.stream().map(l -> new LineDouble(valueToGraph(l.a), valueToGraph(l.b))).forEach(l -> g.drawLine((int)Math.round(l.a.getX()), (int)Math.round(l.a.getY()), (int)Math.round(l.b.getX()), (int)Math.round(l.b.getY())));
     }
     
+    private  void drawBounds(Graphics g, List<BiFunction<Double, Double, Double>> bounds) {
+        for (BiFunction<Double, Double, Double> bound : bounds) {
+            //Map of all points higher/lower then the target
+            ArrayList<ArrayList<Boolean>> data = new ArrayList<>(graphWidth());
+            for (int i = 0; i < graphWidth(); i++) {
+                data.add(new ArrayList<>(graphHeight()));
+                for (int j = 0; j < graphHeight(); j++) {
+                    PointDouble in = graphToValue(new PointDouble(i + MARGIN_X, j + MARGIN_Y));
+                    double val = bound.apply(in.getX(), in.getY());
+                    data.get(i).add(val > 0);
+                }
+            }
+    
+            //Edge detection filter
+            ArrayList<ArrayList<Boolean>> filteredData = new ArrayList<>(graphWidth());
+            for (int i = 0; i < graphWidth(); i++) {
+                filteredData.add(new ArrayList<>(graphHeight()));
+                for (int j = 0; j < graphHeight(); j++) {
+                    boolean tl = data.get(Math.max(Math.min(i - 1, graphWidth() - 1), 0)).get(Math.max(Math.min(j + 1, graphHeight() - 1), 0));
+                    boolean tc = data.get(Math.max(Math.min(i, graphWidth() - 1), 0)).get(Math.max(Math.min(j + 1, graphHeight() - 1), 0));
+                    boolean tr = data.get(Math.max(Math.min(i + 1, graphWidth() - 1), 0)).get(Math.max(Math.min(j + 1, graphHeight() - 1), 0));
+            
+                    boolean cl = data.get(Math.max(Math.min(i - 1, graphWidth() - 1), 0)).get(Math.max(Math.min(j, graphHeight() - 1), 0));
+                    boolean cc = data.get(Math.max(Math.min(i, graphWidth() - 1), 0)).get(Math.max(Math.min(j, graphHeight() - 1), 0));
+                    boolean ct = data.get(Math.max(Math.min(i + 1, graphWidth() - 1), 0)).get(Math.max(Math.min(j, graphHeight() - 1), 0));
+            
+                    boolean bl = data.get(Math.max(Math.min(i - 1, graphWidth() - 1), 0)).get(Math.max(Math.min(j - 1, graphHeight() - 1), 0));
+                    boolean bc = data.get(Math.max(Math.min(i, graphWidth() - 1), 0)).get(Math.max(Math.min(j - 1, graphHeight() - 1), 0));
+                    boolean br = data.get(Math.max(Math.min(i + 1, graphWidth() - 1), 0)).get(Math.max(Math.min(j - 1, graphHeight() - 1), 0));
+            
+                    boolean res;
+                    if (contourWidth > 0.5) {
+                        res = (cc && (!tl || !tc || !tr || !cl || !ct || !bl || !bc || !br)) || (!cc && (tl || tc || tr || cl || ct || bl || bc || br));
+                    } else {
+                        if (contourWidth > 0.25) {
+                            res = (cc && (!tc || !cl || !ct || !bc)) || (!cc && (tc || cl || ct || bc));
+                        } else {
+                            res = cc && (!tc || !cl || !ct || !bc);
+                        }
+                    }
+                    filteredData.get(i).add(res);
+                }
+            }
+    
+            if (usingColors) {
+                g.setColor(BOUND_COLOR);
+            }
+            else {
+                g.setColor(Color.BLACK);
+            }
+            for (int i = 0; i < graphHeight(); i++) {
+                for (int j = 0; j < graphWidth(); j++) {
+                    if (filteredData.get(j).get(i)) {
+                        g.drawRect(j + MARGIN_X, i + MARGIN_Y, 0, 0);
+                    }
+                }
+            }
+            
+        }
+    }
+    
     private int graphWidth() {
         return getWidth() - 2 * MARGIN_X;
     }
@@ -411,6 +480,32 @@ public class ContourGraphDisplay extends JPanel {
         this.displayingValues = displayingValues;
     }
     
+    public List<BiFunction<Double, Double, Double>> getFunctionBounds() {
+        return bounds;
+    }
+    
+    public java.util.function.Function<List<Double>, Double> getPenaltyFunction() {
+        return penaltyFunction;
+    }
+    
+    public void setPenaltyFunction(java.util.function.Function<List<Double>, Double> penaltyFunction) {
+        if (!Objects.equals(this.penaltyFunction, penaltyFunction) && cache != null) {
+            cache.invalidate();
+        }
+        this.penaltyFunction = penaltyFunction;
+    }
+    
+    public boolean isDisplayPenaltyFunction() {
+        return displayPenaltyFunction;
+    }
+    
+    public void setDisplayPenaltyFunction(boolean displayPenaltyFunction) {
+        if (this.displayPenaltyFunction != displayPenaltyFunction && cache != null) {
+            cache.invalidate();
+        }
+        this.displayPenaltyFunction = displayPenaltyFunction;
+    }
+    
     private static class FunctionCache {
         private Function function;
         private ArrayList<ArrayList<Double>> data;
@@ -423,10 +518,14 @@ public class ContourGraphDisplay extends JPanel {
         private double max;
         private boolean valid;
         
-        public FunctionCache(Function function, int resolution, double lowerX, double upperX, double lowerY, double upperY) {
+        private java.util.function.Function<List<Double>, Double> penaltyFunction;
+        private List<BiFunction<Double, Double, Double>> bounds;
+        
+        public FunctionCache(Function function, int resolution, double lowerX, double upperX, double lowerY, double upperY, java.util.function.Function<List<Double>, Double> penaltyFunction, List<BiFunction<Double, Double, Double>> bounds) {
             if (resolution < 1 || function == null) {
                 throw new IllegalArgumentException();
             }
+            
             double dx = (upperX - lowerX) / (double)resolution;
             double dy = (upperY - lowerY) / (double)resolution;
             min = Double.NaN;
@@ -439,6 +538,12 @@ public class ContourGraphDisplay extends JPanel {
             this.lowerY = lowerY;
             this.upperY = upperY;
             this.valid = true;
+    
+            this.penaltyFunction = penaltyFunction;
+            this.bounds = bounds;
+            if (this.bounds == null) {
+                this.bounds = new ArrayList<>();
+            }
             
             data = new ArrayList<>();
             for (int i = 0; i <= resolution; i++) {
@@ -451,6 +556,13 @@ public class ContourGraphDisplay extends JPanel {
             for (int i = 0; i <= resolution; i++) {
                 for (int j = 0; j <= resolution; j++) {
                     double val = function.calculate(lowerX + dx * j, lowerY + dy * i);
+                    if (penaltyFunction != null) {
+                        List<Double> penaltyArgs = new ArrayList<>();
+                        for (int k = 0; k < bounds.size(); k++) {
+                            penaltyArgs.add(bounds.get(k).apply(lowerX + dx * j, lowerY + dy * i));
+                        }
+                        val += penaltyFunction.apply(penaltyArgs);
+                    }
                     set(val, i, j);
                     if ((Double.isNaN(min) && !Double.isNaN(val)) || val < min) {
                         min = val;
@@ -537,6 +649,14 @@ public class ContourGraphDisplay extends JPanel {
     
         public void invalidate() {
             this.valid = false;
+        }
+    
+        public java.util.function.Function<List<Double>, Double> getPenaltyFunction() {
+            return penaltyFunction;
+        }
+    
+        public List<BiFunction<Double, Double, Double>> getBounds() {
+            return bounds;
         }
     }
 }

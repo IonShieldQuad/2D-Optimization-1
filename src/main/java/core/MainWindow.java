@@ -8,7 +8,9 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.DoubleBinaryOperator;
+import java.util.stream.Collectors;
 
 public class MainWindow {
     private JPanel rootPanel;
@@ -33,10 +35,21 @@ public class MainWindow {
     private JCheckBox displayValuesCheckBox;
     private JTextField startXField;
     private JTextField startYField;
+    private JList<String> boundList;
+    private JTextField boundField;
+    private JButton deleteBoundButton;
+    private JButton geBoundButton;
+    private JCheckBox displayPenaltyFunctionCheckBox;
+    private JComboBox penaltyFunctionBox;
+    private JTextField displayIterationField;
+    private JButton leBoundButton;
     
     private static String TITLE = "2D-Optimization-1";
     private Function function;
     private Solver solver;
+    PenaltyAdjuster pa;
+    private List<Function> bounds = new ArrayList<>();
+    private double k = 1;
     
     private MainWindow() {
         initComponents();
@@ -44,9 +57,35 @@ public class MainWindow {
     
     private void initComponents() {
         calculateButton.addActionListener(e -> calculate());
+        boundList.setModel(new DefaultListModel<String>());
+        deleteBoundButton.addActionListener(e -> {
+            if (boundList.getSelectedIndex() != -1) {
+                bounds.remove(boundList.getSelectedIndex());
+            }
+            updateBoundsList();
+        });
+        geBoundButton.addActionListener(e -> {
+            try {
+                Function function = new Function(boundField.getText());
+                if (!function.checkSyntax()) {
+                    throw new IllegalArgumentException("Invalid function syntax");
+                }
+                bounds.add(function);
+            }
+            catch (IllegalArgumentException ex) {
+                log.append("\nAn error occurred: " + ex.getMessage());
+            }
+            updateBoundsList();
+        });
     }
     
-    
+    private void updateBoundsList() {
+        DefaultListModel<String> model = (DefaultListModel<String>) boundList.getModel();
+        model.clear();
+        for (Function f : bounds) {
+            model.addElement(f.getFunctionName() + "(" + f.getParameterName(0) + ", " + f.getParameterName(1) + ")" + " = " + f.getFunctionExpressionString());
+        }
+    }
     
     private void calculate() {
         try {
@@ -56,13 +95,37 @@ public class MainWindow {
                 throw new IllegalArgumentException("Invalid function syntax");
             }
             initSolver();
+            k = 1;
+            int displayIteration = Integer.parseInt(displayIterationField.getText());
             if (solver != null) {
+                if (bounds == null) {
+                    bounds = new ArrayList<>();
+                }
+                List<BiFunction<Double, Double, Double>> boundsProcessed = new ArrayList<>();
+                bounds.forEach(b -> boundsProcessed.add((x, y) -> b.calculate(x, y)));
+                
+                BiFunction<List<Double>, Double, Double> penaltyFunction;
+                switch (penaltyFunctionBox.getSelectedIndex()) {
+                    case 0:
+                        penaltyFunction = PenaltyAdjuster.INVERSE_PENALTY_FUNCTION;
+                        break;
+                    case 1:
+                        penaltyFunction = PenaltyAdjuster.LOGARITHMIC_PENALTY_FUNCTION;
+                        break;
+                    default:
+                        penaltyFunction = PenaltyAdjuster.QUADRATIC_PENALTY_FUNCTION;
+                }
+                
+                pa = new PenaltyAdjuster(solver, penaltyFunction, boundsProcessed, true);
+                pa.setDisplayIteration(displayIteration);
+                
                 solver.setF(function::calculate);
                 List<PointDouble> startPoints = getStartPoints();
-                PointDouble result = solver.solve(startPoints.toArray(new PointDouble[]{}));
+                PointDouble result = pa.solve(startPoints.toArray(new PointDouble[]{}));
                 log.append("\nResult: x = " + result.getX() + "; y = " + result.getY());
                 log.append("\nLog:");
-                solver.getSolutionLog().forEach(s -> log.append("\n" + s));
+                pa.getSolutionLog().forEach(s -> log.append("\n" + s));
+                k = displayIteration < 0 ? pa.getK() : Math.min(pa.getKOfIteration(displayIteration), pa.getK());
             }
             updateGraph();
         }
@@ -89,13 +152,17 @@ public class MainWindow {
     
     private void updateGraph() {
         graph.setFunction(function);
-        if (solver != null) {
-            graph.setPoints(solver.getPoints());
-            graph.setLines(solver.getLines());
+        if (pa != null && solver!= null) {
+            graph.setPoints(pa.getPoints());
+            graph.setLines(pa.getLines());
         }
         else {
             graph.getPoints().clear();
             graph.getLines().clear();
+        }
+        if (bounds != null) {
+            graph.getFunctionBounds().clear();
+            bounds.forEach(b -> graph.getFunctionBounds().add((x, y) -> b.calculate(x, y)));
         }
         graph.setLowerX(Double.parseDouble(lowerX.getText()));
         graph.setUpperX(Double.parseDouble(upperX.getText()));
@@ -110,6 +177,30 @@ public class MainWindow {
         graph.setUsingColors(useColorsCheckBox.isSelected());
         graph.setAlternateContours(alternateContoursCheckBox.isSelected());
         graph.setDisplayingValues(displayValuesCheckBox.isSelected());
+        graph.setDisplayPenaltyFunction(displayPenaltyFunctionCheckBox.isSelected());
+        
+        BiFunction<List<Double>, Double, Double> penaltyFunction;
+        switch (penaltyFunctionBox.getSelectedIndex()) {
+            case 0:
+                penaltyFunction = PenaltyAdjuster.INVERSE_PENALTY_FUNCTION;
+                break;
+            case 1:
+                penaltyFunction = PenaltyAdjuster.LOGARITHMIC_PENALTY_FUNCTION;
+                break;
+            default:
+                penaltyFunction = PenaltyAdjuster.QUADRATIC_PENALTY_FUNCTION;
+        }
+        graph.setPenaltyFunction(l -> penaltyFunction.apply(l, k));
+        /*graph.setPenaltyFunction(l -> {
+            double sum = 0;
+            for (double val : l) {
+                if (val < 0) {
+                    return Double.MAX_VALUE;
+                }
+                sum += 1 / val;
+            }
+            return Math.min(sum, Double.MAX_VALUE);
+        });*/
         graph.repaint();
     }
     

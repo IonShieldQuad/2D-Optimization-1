@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SimplexSolver extends Solver {
+    private static final int I_MAX = 1024;
     private double alpha = 1;
     private double beta = 2;
     private double gamma = 0.5;
@@ -45,7 +46,7 @@ public class SimplexSolver extends Solver {
         
         int iteration = 0;
         
-        while (true) {
+        while (iteration < I_MAX) {
             iteration++;
             double sqrAvg = 0;
             double avg = 0;

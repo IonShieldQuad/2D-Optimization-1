@@ -5,6 +5,7 @@ import java.util.function.BiFunction;
 public class GaussSeidelSolver extends Solver {
     private static final PointDouble AXIS_X = new PointDouble(1, 0);
     private static final PointDouble AXIS_Y = new PointDouble(0, 1);
+    private static final int I_MAX = 1024;
     
     @Override
     protected PointDouble solveInternal(PointDouble... data) {
@@ -21,7 +22,7 @@ public class GaussSeidelSolver extends Solver {
         int i = 0;
         PointDouble axisX = AXIS_X;
         PointDouble axisY = AXIS_Y;
-        while(!(i > 1000 || (i > 0 && Math.sqrt(Math.pow(currX - prevX, 2) + Math.pow(currY - prevY, 2)) < EPSILON))) {
+        while(!(i > I_MAX || (i > 0 && Math.sqrt(Math.pow(currX - prevX, 2) + Math.pow(currY - prevY, 2)) < EPSILON))) {
             prevX = currX;
             prevY = currY;
             PointDouble res;
