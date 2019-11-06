@@ -114,7 +114,7 @@ public class PenaltyAdjuster extends Solver {
     
             solver.setF(getCombinedPenaltyFunction(function, bounds, penaltyFunction, k));
             
-            curr = solver.solve(data);
+            curr = returnToBounds(solver.solve(data));
     
             addPoint(curr);
             addToLog("i = " + i + "; k = " + k + "; Solution: " + curr);
