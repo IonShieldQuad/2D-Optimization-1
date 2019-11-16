@@ -1,5 +1,8 @@
 package math;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class PointDouble {
     private Double x;
     private Double y;
@@ -55,6 +58,19 @@ public class PointDouble {
     
     @Override
     public String toString() {
+        return "(" + x + "; " + y + ")";
+    }
+    
+    public String toString(int precision) {
+        if (precision < 0) {
+            return toString();
+        }
+        double x = this.x;
+        double y = this.y;
+        
+        x = BigDecimal.valueOf(x).setScale(precision, RoundingMode.HALF_UP).doubleValue();
+        y = BigDecimal.valueOf(y).setScale(precision, RoundingMode.HALF_UP).doubleValue();
+        
         return "(" + x + "; " + y + ")";
     }
 }

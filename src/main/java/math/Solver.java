@@ -6,6 +6,7 @@ import java.util.function.BiFunction;
 
 public abstract class Solver {
     public static final Double EPSILON = 0.001;
+    public static int PRECISION = 3;
     private BiFunction<Double, Double, Double> f;
     private List<String> log = new ArrayList<>();
     private List<PointDouble> points = new ArrayList<>();

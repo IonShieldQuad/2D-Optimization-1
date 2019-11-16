@@ -61,7 +61,7 @@ public class SimplexSolver extends Solver {
             addLine(new LineDouble(points.get(0), points.get(1)));
             addLine(new LineDouble(points.get(1), points.get(2)));
             addLine(new LineDouble(points.get(2), points.get(0)));
-            addToLog(iteration + ") p1 = " + points.get(0) + "; p2 = " + points.get(1)  + "; p3 = " + points.get(2));
+            addToLog(iteration + ") p1 = " + points.get(0).toString(PRECISION) + "; p2 = " + points.get(1).toString(PRECISION)  + "; p3 = " + points.get(2).toString(PRECISION));
             
             //Finish condition
             if (Math.sqrt(sqrAvg) < EPSILON) {

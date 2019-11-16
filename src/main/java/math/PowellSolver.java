@@ -25,21 +25,21 @@ public class PowellSolver extends Solver {
             prevY = currY;
             PointDouble res;
     
-            addToLog(i + ") Begin: x = " + currX + "; y = " + currY);
+            addToLog(i + ") Begin: " + new PointDouble(currX, currY).toString(PRECISION));
             
             res = findMinOnAxis(axisX, new PointDouble(currX, currY));
             addLine(new PointDouble(prevX, prevY), res);
             currX = res.getX();
             currY = res.getY();
     
-            addToLog(i + ") Minimum on axis X: x = " + currX + "; y = " + currY);
+            addToLog(i + ") Minimum on axis X: " + new PointDouble(currX, currY).toString(PRECISION));
             
             res = findMinOnAxis(axisY, new PointDouble(currX, currY));
             addLine(new PointDouble(currX, currY), res);
             currX = res.getX();
             currY = res.getY();
     
-            addToLog(i + ") Minimum on axis Y: x = " + currX + "; y = " + currY);
+            addToLog(i + ") Minimum on axis Y: " + new PointDouble(currX, currY).toString(PRECISION));
     
             addLine(new PointDouble(prevX, prevY), res);
             
@@ -51,7 +51,7 @@ public class PowellSolver extends Solver {
             currX = res.getX();
             currY = res.getY();
     
-            addToLog(i + ") Minimum on diagonal axis: x = " + currX + "; y = " + currY);
+            addToLog(i + ") Minimum on diagonal axis: " + new PointDouble(currX, currY).toString(PRECISION));
             
             i++;
         }

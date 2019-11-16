@@ -22,14 +22,14 @@ public class GradientSolver extends Solver {
             addLine(prev, curr);
             addPoint(prev);
             addPoint(curr);
-            addToLog(i + ") Point = " + prev + "; End = " + curr + "; Gradient = " + gradient);
+            addToLog(i + ") Point = " + prev.toString(PRECISION) + "; End = " + curr.toString(PRECISION) + "; Gradient = " + gradient.toString(PRECISION));
     
             i++;
         } while (i < I_MAX && curr.add(prev.scale(-1)).length() > EPSILON);
         addLine(prev, curr);
         addPoint(prev);
         addPoint(curr);
-        addToLog(i + ") Point = " + prev + "; End = " + curr + "; Gradient = " + gradient);
+        addToLog(i + ") Point = " + prev.toString(PRECISION) + "; End = " + curr.toString(PRECISION) + "; Gradient = " + gradient.toString(PRECISION));
         return curr;
     }
     

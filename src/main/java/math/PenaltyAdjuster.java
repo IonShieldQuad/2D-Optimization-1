@@ -98,7 +98,7 @@ public class PenaltyAdjuster extends Solver {
         
         curr = returnToBounds(solver.solve(data));
         addPoint(curr);
-        addToLog("i = " + i + "; k = " + k + "; Solution: " + curr);
+        addToLog("i = " + i + "; k = " + k + "; Solution: " + curr.toString(PRECISION));
     
         if (displayIteration == i) {
             addToLog("Log of the iteration " + i + ":");
@@ -117,7 +117,7 @@ public class PenaltyAdjuster extends Solver {
             curr = returnToBounds(solver.solve(data));
     
             addPoint(curr);
-            addToLog("i = " + i + "; k = " + k + "; Solution: " + curr);
+            addToLog("i = " + i + "; k = " + k + "; Solution: " + curr.toString(PRECISION));
     
             if (displayIteration == i) {
                 addToLog("Log of the iteration " + i + ":");

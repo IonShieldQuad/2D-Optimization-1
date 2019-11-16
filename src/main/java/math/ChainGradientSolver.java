@@ -36,7 +36,7 @@ public class ChainGradientSolver extends Solver {
             addLine(prev, curr);
             addPoint(prev);
             addPoint(curr);
-            addToLog(i + ") Start = " + prev + "; End = " + curr + "; Gradient = " + grad + "; Beta = " + beta);
+            addToLog(i + ") Start = " + prev.toString(PRECISION) + "; End = " + curr.toString(PRECISION) + "; Gradient = " + grad.toString(PRECISION) + "; Beta = " + beta);
             delta = curr.add(prev.scale(-1)).length();
             
             i++;
@@ -44,7 +44,7 @@ public class ChainGradientSolver extends Solver {
         addLine(prev, curr);
         addPoint(prev);
         addPoint(curr);
-        addToLog(i + ") Start = " + prev + "; End = " + curr + "; Gradient = " + grad + "; Beta = " + beta);
+        addToLog(i + ") Start = " + prev.toString(PRECISION) + "; End = " + curr.toString(PRECISION) + "; Gradient = " + grad.toString(PRECISION) + "; Beta = " + beta);
         return curr;
     }
     

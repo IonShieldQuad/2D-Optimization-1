@@ -27,21 +27,21 @@ public class GaussSeidelSolver extends Solver {
             prevY = currY;
             PointDouble res;
             
-            addToLog(i + ") Begin: x = " + currX + "; y = " + currY);
+            addToLog(i + ") Begin: " + new PointDouble(currX, currY).toString(PRECISION));
             
             res = findMinOnAxis(axisX, new PointDouble(currX, currY));
             addLine(new PointDouble(prevX, prevY), res);
             currX = res.getX();
             currY = res.getY();
     
-            addToLog(i + ") Minimum on axis X: x = " + currX + "; y = " + currY);
+            addToLog(i + ") Minimum on axis X: " + new PointDouble(currX, currY).toString(PRECISION));
     
             res = findMinOnAxis(axisY, new PointDouble(currX, currY));
             addLine(new PointDouble(currX, currY), res);
             currX = res.getX();
             currY = res.getY();
     
-            addToLog(i + ") Minimum on axis Y: x = " + currX + "; y = " + currY);
+            addToLog(i + ") Minimum on axis Y: " + new PointDouble(currX, currY).toString(PRECISION));
     
             axisX = new PointDouble(axisX.getX() / 2.0, axisX.getY() / 2.0);
             axisY = new PointDouble(axisY.getX() / 2.0, axisY.getY() / 2.0);

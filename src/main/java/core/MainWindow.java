@@ -42,6 +42,9 @@ public class MainWindow {
     private JCheckBox displayPenaltyFunctionCheckBox;
     private JComboBox penaltyFunctionBox;
     private JTextField displayIterationField;
+    private JList constraintList;
+    private JButton deleteConstraintButton;
+    private JButton eqButton;
     private JButton leBoundButton;
     
     private static String TITLE = "2D-Optimization-1";
@@ -122,7 +125,7 @@ public class MainWindow {
                 solver.setF(function::calculate);
                 List<PointDouble> startPoints = getStartPoints();
                 PointDouble result = pa.solve(startPoints.toArray(new PointDouble[]{}));
-                log.append("\nResult: x = " + result.getX() + "; y = " + result.getY());
+                log.append("\nResult: " + new PointDouble(result.getX(), result.getY()).toString(Solver.PRECISION));
                 log.append("\nLog:");
                 pa.getSolutionLog().forEach(s -> log.append("\n" + s));
                 k = displayIteration < 0 ? pa.getK() : Math.min(pa.getKOfIteration(displayIteration), pa.getK());
