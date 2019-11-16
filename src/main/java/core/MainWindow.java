@@ -42,7 +42,7 @@ public class MainWindow {
     private JCheckBox displayPenaltyFunctionCheckBox;
     private JComboBox penaltyFunctionBox;
     private JTextField displayIterationField;
-    private JList constraintList;
+    private JList<String> constraintList;
     private JButton deleteConstraintButton;
     private JButton eqButton;
     private JButton leBoundButton;
@@ -52,6 +52,7 @@ public class MainWindow {
     private Solver solver;
     PenaltyAdjuster pa;
     private List<Function> bounds = new ArrayList<>();
+    private List<Function> constraints = new ArrayList<>();
     private double k = 1;
     
     private MainWindow() {
@@ -60,12 +61,19 @@ public class MainWindow {
     
     private void initComponents() {
         calculateButton.addActionListener(e -> calculate());
-        boundList.setModel(new DefaultListModel<String>());
+        boundList.setModel(new DefaultListModel<>());
+        constraintList.setModel(new DefaultListModel<>());
         deleteBoundButton.addActionListener(e -> {
             if (boundList.getSelectedIndex() != -1) {
                 bounds.remove(boundList.getSelectedIndex());
             }
             updateBoundsList();
+        });
+        deleteConstraintButton.addActionListener(e -> {
+            if (constraintList.getSelectedIndex() != -1) {
+                constraints.remove(constraintList.getSelectedIndex());
+            }
+            updateConstraintsList();;
         });
         geBoundButton.addActionListener(e -> {
             try {
@@ -80,12 +88,32 @@ public class MainWindow {
             }
             updateBoundsList();
         });
+        eqButton.addActionListener(e -> {
+            try {
+                Function function = new Function(boundField.getText());
+                if (!function.checkSyntax()) {
+                    throw new IllegalArgumentException("Invalid function syntax");
+                }
+                constraints.add(function);
+            }
+            catch (IllegalArgumentException ex) {
+                log.append("\nAn error occurred: " + ex.getMessage());
+            }
+            updateConstraintsList();;
+        });
     }
     
     private void updateBoundsList() {
         DefaultListModel<String> model = (DefaultListModel<String>) boundList.getModel();
         model.clear();
         for (Function f : bounds) {
+            model.addElement(f.getFunctionName() + "(" + f.getParameterName(0) + ", " + f.getParameterName(1) + ")" + " = " + f.getFunctionExpressionString());
+        }
+    }
+    private void updateConstraintsList() {
+        DefaultListModel<String> model = (DefaultListModel<String>) constraintList.getModel();
+        model.clear();
+        for (Function f : constraints) {
             model.addElement(f.getFunctionName() + "(" + f.getParameterName(0) + ", " + f.getParameterName(1) + ")" + " = " + f.getFunctionExpressionString());
         }
     }
@@ -106,6 +134,8 @@ public class MainWindow {
                 }
                 List<BiFunction<Double, Double, Double>> boundsProcessed = new ArrayList<>();
                 bounds.forEach(b -> boundsProcessed.add((x, y) -> b.calculate(x, y)));
+                List<BiFunction<Double, Double, Double>> constraintsProcessed = new ArrayList<>();
+                constraints.forEach(c -> constraintsProcessed.add((x, y) -> c.calculate(x, y)));
                 
                 BiFunction<List<Double>, Double, Double> penaltyFunction;
                 switch (penaltyFunctionBox.getSelectedIndex()) {
@@ -119,7 +149,7 @@ public class MainWindow {
                         penaltyFunction = PenaltyAdjuster.QUADRATIC_PENALTY_FUNCTION;
                 }
                 
-                pa = new PenaltyAdjuster(solver, penaltyFunction, boundsProcessed, true);
+                pa = new PenaltyAdjuster(solver, penaltyFunction, boundsProcessed, constraintsProcessed, true);
                 pa.setDisplayIteration(displayIteration);
                 
                 solver.setF(function::calculate);
@@ -133,7 +163,7 @@ public class MainWindow {
             updateGraph();
         }
         catch (NumberFormatException e) {
-            log.append("\nInvalid input format");
+            log.append("\nInvalid number format");
         }
         catch (IllegalArgumentException e) {
             log.append("\nAn error occurred: " + e.getMessage());
@@ -163,9 +193,13 @@ public class MainWindow {
             graph.getPoints().clear();
             graph.getLines().clear();
         }
-        if (bounds != null) {
-            graph.getFunctionBounds().clear();
+        graph.getFunctionBounds().clear();
+        graph.getFunctionConstraints().clear();
+        if (bounds != null) { ;
             bounds.forEach(b -> graph.getFunctionBounds().add((x, y) -> b.calculate(x, y)));
+        }
+        if (constraints != null) {
+            constraints.forEach(c -> graph.getFunctionConstraints().add((x, y) -> c.calculate(x, y)));
         }
         graph.setLowerX(Double.parseDouble(lowerX.getText()));
         graph.setUpperX(Double.parseDouble(upperX.getText()));
@@ -194,6 +228,7 @@ public class MainWindow {
                 penaltyFunction = PenaltyAdjuster.QUADRATIC_PENALTY_FUNCTION;
         }
         graph.setPenaltyFunction(l -> penaltyFunction.apply(l, k));
+        graph.setConstraintPenaltyFunction(l -> PenaltyAdjuster.QUADRATIC_BIDIRECTIONAL_PENALTY_FUNCTION.apply(l, k));
         /*graph.setPenaltyFunction(l -> {
             double sum = 0;
             for (double val : l) {

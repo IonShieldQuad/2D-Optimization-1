@@ -59,6 +59,9 @@ public abstract class Solver {
             }
             string.append(this.log.get(i)).append(" ");
         }
+        if (string.length() != 0) {
+            strings.add(string.toString());
+        }
         return strings;
     }
     
@@ -102,6 +105,10 @@ public abstract class Solver {
     }
     
     protected PointDouble findMinOnAxis(PointDouble axis, PointDouble startPoint) {
+        axis = new PointDouble(Math.min(Math.max(axis.getX(), -Double.MAX_VALUE), Double.MAX_VALUE), Math.min(Math.max(axis.getY(), -Double.MAX_VALUE), Double.MAX_VALUE));
+        if (axis.getX().isNaN() || axis.getY().isNaN()) {
+            return startPoint;
+        }
         
         int i = 0;
         double prevX = startPoint.getX();
@@ -168,7 +175,7 @@ public abstract class Solver {
             }
     
             axis = axis.scale(0.5);
-        } while (axis.length() > EPSILON);
+        } while (axis.length() > EPSILON && i < 32);
         return startPoint;
     }
 }

@@ -29,7 +29,7 @@ public class ChainGradientSolver extends Solver {
                 s = grad.scale(-DESC_RATE).add(prevS.scale(beta));
             }
             else {
-                grad.scale(-DESC_RATE);
+                s = grad.scale(-DESC_RATE);
             }
             curr = findMinOnAxis(s, prev);
             

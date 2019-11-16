@@ -65,6 +65,10 @@ public class PointDouble {
         if (precision < 0) {
             return toString();
         }
+        if (x.isInfinite() || x.isNaN() || y.isInfinite() || y.isNaN()) {
+            return toString();
+        }
+        
         double x = this.x;
         double y = this.y;
         

@@ -8,7 +8,9 @@ public class PenaltyAdjuster extends Solver {
     private Solver solver;
     private BiFunction<Double, Double, Double> function;
     private BiFunction<List<Double>, Double, Double> penaltyFunction;
+    private BiFunction<List<Double>, Double, Double> constraintPenaltyFunction = QUADRATIC_BIDIRECTIONAL_PENALTY_FUNCTION;
     private List<BiFunction<Double, Double, Double>> bounds;
+    private List<BiFunction<Double, Double, Double>> constraints;
     private boolean enabled;
     
     private double kStart = 1;
@@ -55,10 +57,22 @@ public class PenaltyAdjuster extends Solver {
         return Math.min(sum * k, Double.MAX_VALUE);
     };
     
-    public PenaltyAdjuster(Solver solver, BiFunction<List<Double>, Double, Double> penaltyFunction, List<BiFunction<Double, Double, Double>> bounds, boolean enabled) {
+    public static final BiFunction<List<Double>, Double, Double> QUADRATIC_BIDIRECTIONAL_PENALTY_FUNCTION = (l, k) -> {
+        double sum = 0;
+        for (double val : l) {
+            if (Double.isNaN(val)) {
+                val = 0.0;
+            }
+            sum += Math.pow(val, 2);
+        }
+        return Math.min(sum * k, Double.MAX_VALUE);
+    };
+    
+    public PenaltyAdjuster(Solver solver, BiFunction<List<Double>, Double, Double> penaltyFunction, List<BiFunction<Double, Double, Double>> bounds, List<BiFunction<Double, Double, Double>> constraints, boolean enabled) {
         this.solver = solver;
         this.penaltyFunction = penaltyFunction;
         this.bounds = bounds;
+        this.constraints = constraints;
         this.enabled = enabled;
         if (bounds == null) {
             bounds = new ArrayList<>();
@@ -94,7 +108,7 @@ public class PenaltyAdjuster extends Solver {
             data[i] = returned;
         }
         
-        solver.setF(getCombinedPenaltyFunction(function, bounds, penaltyFunction, k));
+        solver.setF(getCombinedPenaltyFunction(function, bounds, penaltyFunction, constraints, constraintPenaltyFunction, k));
         
         curr = returnToBounds(solver.solve(data));
         addPoint(curr);
@@ -112,7 +126,7 @@ public class PenaltyAdjuster extends Solver {
             prev = curr;
             k *= kMulti;
     
-            solver.setF(getCombinedPenaltyFunction(function, bounds, penaltyFunction, k));
+            solver.setF(getCombinedPenaltyFunction(function, bounds, penaltyFunction, constraints, constraintPenaltyFunction, k));
             
             curr = returnToBounds(solver.solve(data));
     
@@ -184,13 +198,17 @@ public class PenaltyAdjuster extends Solver {
         return res;
     }
     
-    public static BiFunction<Double, Double, Double> getCombinedPenaltyFunction(BiFunction<Double, Double, Double> function, List<BiFunction<Double, Double, Double>> bounds, BiFunction<List<Double>, Double, Double> penaltyFunction, double k) {
+    public static BiFunction<Double, Double, Double> getCombinedPenaltyFunction(BiFunction<Double, Double, Double> function, List<BiFunction<Double, Double, Double>> bounds, BiFunction<List<Double>, Double, Double> penaltyFunction, List<BiFunction<Double, Double, Double>> constraints, BiFunction<List<Double>, Double, Double> constraintPenaltyFunction, double k) {
         return (x, y) -> {
             List<Double> values = new ArrayList<>();
+            List<Double> values2 = new ArrayList<>();
             for (BiFunction<Double, Double, Double> bound : bounds) {
                 values.add(bound.apply(x, y));
             }
-            return function.apply(x, y) + penaltyFunction.apply(values, k);
+            for (BiFunction<Double, Double, Double> constraint : constraints) {
+                values2.add(constraint.apply(x, y));
+            }
+            return function.apply(x, y) + penaltyFunction.apply(values, k) + constraintPenaltyFunction.apply(values2, k);
         };
     }
     

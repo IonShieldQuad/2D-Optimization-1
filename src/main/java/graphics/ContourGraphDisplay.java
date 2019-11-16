@@ -32,6 +32,8 @@ public class ContourGraphDisplay extends JPanel {
     private FunctionCache cache;
     private List<BiFunction<Double, Double, Double>> bounds = new ArrayList<>();
     private java.util.function.Function<List<Double>, Double> penaltyFunction;
+    private List<BiFunction<Double, Double, Double>> constraints = new ArrayList<>();
+    private java.util.function.Function<List<Double>, Double> constraintPenaltyFunction;
     
     private double lowerX;
     private double upperX;
@@ -70,7 +72,7 @@ public class ContourGraphDisplay extends JPanel {
         super.paintComponent(g);
     
         if (function != null && (cache == null || !cache.isValid())) {
-            cache = new FunctionCache(function, resolution, lowerX, upperX, lowerY, upperY, displayPenaltyFunction ? penaltyFunction : null, bounds);
+            cache = new FunctionCache(function, resolution, lowerX, upperX, lowerY, upperY, displayPenaltyFunction ? penaltyFunction : null, bounds, displayPenaltyFunction ? constraintPenaltyFunction : null, constraints);
         }
         
         drawGrid(g);
@@ -79,6 +81,9 @@ public class ContourGraphDisplay extends JPanel {
         }
         if (bounds != null) {
             drawBounds(g, bounds);
+        }
+        if (constraints != null) {
+            drawBounds(g, constraints);
         }
         if (lines != null) {
             drawLines(g);
@@ -484,6 +489,10 @@ public class ContourGraphDisplay extends JPanel {
         return bounds;
     }
     
+    public List<BiFunction<Double, Double, Double>> getFunctionConstraints() {
+        return constraints;
+    }
+    
     public java.util.function.Function<List<Double>, Double> getPenaltyFunction() {
         return penaltyFunction;
     }
@@ -493,6 +502,17 @@ public class ContourGraphDisplay extends JPanel {
             cache.invalidate();
         }
         this.penaltyFunction = penaltyFunction;
+    }
+    
+    public java.util.function.Function<List<Double>, Double> getConstraintPenaltyFunction() {
+        return constraintPenaltyFunction;
+    }
+    
+    public void setConstraintPenaltyFunction(java.util.function.Function<List<Double>, Double> constraintPenaltyFunction) {
+        if (!Objects.equals(this.constraintPenaltyFunction, constraintPenaltyFunction) && cache != null) {
+            cache.invalidate();
+        }
+        this.constraintPenaltyFunction = constraintPenaltyFunction;
     }
     
     public boolean isDisplayPenaltyFunction() {
@@ -520,8 +540,10 @@ public class ContourGraphDisplay extends JPanel {
         
         private java.util.function.Function<List<Double>, Double> penaltyFunction;
         private List<BiFunction<Double, Double, Double>> bounds;
+        private java.util.function.Function<List<Double>, Double> constraintPenaltyFunction;
+        private List<BiFunction<Double, Double, Double>> constraints;
         
-        public FunctionCache(Function function, int resolution, double lowerX, double upperX, double lowerY, double upperY, java.util.function.Function<List<Double>, Double> penaltyFunction, List<BiFunction<Double, Double, Double>> bounds) {
+        public FunctionCache(Function function, int resolution, double lowerX, double upperX, double lowerY, double upperY, java.util.function.Function<List<Double>, Double> penaltyFunction, List<BiFunction<Double, Double, Double>> bounds, java.util.function.Function<List<Double>, Double> constraintPenaltyFunction, List<BiFunction<Double, Double, Double>> constraints) {
             if (resolution < 1 || function == null) {
                 throw new IllegalArgumentException();
             }
@@ -544,6 +566,12 @@ public class ContourGraphDisplay extends JPanel {
             if (this.bounds == null) {
                 this.bounds = new ArrayList<>();
             }
+    
+            this.constraintPenaltyFunction = constraintPenaltyFunction;
+            this.constraints = constraints;
+            if (this.constraints == null) {
+                this.constraints = new ArrayList<>();
+            }
             
             data = new ArrayList<>();
             for (int i = 0; i <= resolution; i++) {
@@ -562,6 +590,13 @@ public class ContourGraphDisplay extends JPanel {
                             penaltyArgs.add(bounds.get(k).apply(lowerX + dx * j, lowerY + dy * i));
                         }
                         val += penaltyFunction.apply(penaltyArgs);
+                    }
+                    if (constraintPenaltyFunction != null) {
+                        List<Double> penaltyArgs = new ArrayList<>();
+                        for (int k = 0; k < constraints.size(); k++) {
+                            penaltyArgs.add(constraints.get(k).apply(lowerX + dx * j, lowerY + dy * i));
+                        }
+                        val += constraintPenaltyFunction.apply(penaltyArgs);
                     }
                     set(val, i, j);
                     if ((Double.isNaN(min) && !Double.isNaN(val)) || val < min) {
@@ -657,6 +692,14 @@ public class ContourGraphDisplay extends JPanel {
     
         public List<BiFunction<Double, Double, Double>> getBounds() {
             return bounds;
+        }
+    
+        public java.util.function.Function<List<Double>, Double> getConstraintPenaltyFunction() {
+            return constraintPenaltyFunction;
+        }
+    
+        public List<BiFunction<Double, Double, Double>> getConstraints() {
+            return constraints;
         }
     }
 }
